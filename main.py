@@ -98,18 +98,52 @@ def trend_support_parameter():
 
     st.pyplot(fig)
 
-trend_pollutant_per_season()
-trend_support_parameter()
 
-st.subheader('Persentase Perubahan Konsentrasi Polutan 2013 vs 2016')
-fig = plot_percentage_change(all_df, pollutant_params)
-st.pyplot(fig)
+@st.fragment
+def trend_pollutant_by_compare_year():
+    st.subheader('Perbandingan Perubahan Konsentrasi Polutan')
+    st.caption('Disclaimer: Winter bulan Januari dan Februari akan dianggap sebagai data tahun sebelumnya, e.g. Winter Januari 2017, season_year = 2016')
+
+    main_df = convert_df_year_to_season_year(all_df)
+    col1, col2 = st.columns(2)
+    year_opts = main_df['season_year'].unique()
+    year_opts.sort()
+    year1_idx, = np.where(year_opts == year_opts[0])
+    year2_idx, = np.where(year_opts == year_opts[-1])
+
+    with col1:
+        year1 = st.selectbox(
+            'Pilih tahun ke-1: ', 
+            year_opts,
+            key='trend_pollutant_by_compare_year1',
+            index=int(year1_idx[0])
+        )
+    
+    with col2:
+        year2 = st.selectbox(
+            'Pilih tahun ke-2: ', 
+            year_opts,
+            key='trend_pollutant_by_compare_year2',
+            index=int(year2_idx[0])
+        )
+
+    years = [year1, year2]
+    fig = plot_percentage_change(main_df, pollutant_params, years)
+    st.pyplot(fig)
+
+st.divider()
+# trend_pollutant_per_season()
+st.divider()
+# trend_support_parameter()
+st.divider()
+# trend_pollutant_by_compare_year()
+st.divider()
 
 st.subheader('Perubahan Persentase dan Konsentrasi Tahunan Polutan')
 
-# all_df2 = convert_df_year_to_season_year(all_df)
-# min_date2 = all_df["date"].min()
-# max_date2 = "2016-12-31 23:00:00"
+all_df2 = convert_df_year_to_season_year(all_df)
+min_date2 = all_df["date"].min()
+max_date2 = "2016-12-31 23:00:00"
 
 # Mengambil start_date & end_date dari date_input
 start_date2, end_date2 = st.date_input(

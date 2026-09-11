@@ -217,25 +217,19 @@ def create_agg_dict(df, columns, agg_values):
 
 def plot_percentage_change(
     df: pd.DataFrame,
-    params: list
+    params: list,
+    years: list,
 ):
     agg_dict = create_agg_dict(df, params, ['median'])
 
-    df_copy = df.copy()
-    df_copy['season_year'] = df_copy['date'].dt.year
-    df_copy.loc[
-        df_copy['season'].eq('Winter') &
-        df_copy['date'].dt.month.isin([1, 2]),
-        'season_year'
-    ] -= 1
-
-    data_df = df_copy.groupby([
+    data_df = df.groupby([
         'station',
         'season_year',
     ]).agg(agg_dict).reset_index()
     data_df.columns = data_df.columns.droplevel(1)
 
-    years = data_df['season_year'].unique()
+    if years is None:
+        years = data_df['season_year'].unique()
 
     # Pisahkan min dan max
     data_min = (
@@ -264,7 +258,7 @@ def plot_percentage_change(
 
     plt.title(
         'Persentase Perubahan Rata-rata Konsentrasi Polutan\n'
-        '2013 → 2016'
+        f'{min(years)} vs {max(years)}'
     )
 
     plt.xlabel('Parameter')
