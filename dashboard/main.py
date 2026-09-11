@@ -9,9 +9,12 @@ from utils.helper import (
     plot_annual_heatmap,
     convert_df_year_to_season_year,
 )
+from pathlib import Path\
 
 
-all_df = pd.read_csv('all_data.csv')
+script_dir = Path(__file__).resolve().parent
+csv_path = script_dir / 'all_data.csv'
+all_df = pd.read_csv(csv_path)
 all_df['date'] = pd.to_datetime(all_df['date'], errors='coerce')
 main_df = convert_df_year_to_season_year(all_df)
 pollutant_params = ['PM2.5', 'PM10', 'SO2', 'NO2', 'CO', 'O3']
