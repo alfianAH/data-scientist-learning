@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import streamlit as st
 from utils.helper import (
     plot_bar_by_season,
@@ -13,71 +14,92 @@ from utils.helper import (
 all_df = pd.read_csv('all_data.csv')
 all_df['date'] = pd.to_datetime(all_df['date'], errors='coerce')
 pollutant_params = ['PM2.5', 'PM10', 'SO2', 'NO2', 'CO', 'O3']
+support_params = ['TEMP', 'PRES', 'DEWP', 'RAIN', 'WSPM']
 
 st.header('Analisis Data Air Quality')
 
-min_date = all_df["date"].min()
-max_date = all_df["date"].max()
- 
-# Mengambil start_date & end_date dari date_input
-start_date, end_date = st.date_input(
-    label='Rentang Waktu',min_value=min_date,
-    max_value=max_date,
-    value=[min_date, max_date],
-    key='date1'
-)
- 
-main_df = all_df[(all_df["date"] >= str(start_date)) & 
-                (all_df["date"] <= str(end_date))]
+@st.fragment
+def trend_pollutant_per_season():
+    st.subheader('Distribusi Parameter Polutan per Musim')
+    min_date = all_df["date"].min()
+    max_date = all_df["date"].max()
+    
+    # Mengambil start_date & end_date dari date_input
+    start_date, end_date = st.date_input(
+        label='Rentang Waktu',min_value=min_date,
+        max_value=max_date,
+        value=[min_date, max_date],
+        key='trend_pollutant_per_season'
+    )
+    main_df = all_df[(all_df["date"] >= str(start_date)) & 
+                    (all_df["date"] <= str(end_date))]
+    
+    fig = plot_bar_by_season(main_df, pollutant_params)
 
-st.subheader('Distribusi Parameter Polutan per Musim')
-fig = plot_bar_by_season(main_df, pollutant_params)
-st.pyplot(fig)
+    st.pyplot(fig)
 
-st.subheader('Tren Parameter Meteorologi Berdasarkan Polutan')
-fig = plot_trend_line(
-    main_df,
-    x_param="TEMP",
-    y_param_list=pollutant_params,
-    x_label="Temperatur",
-    quantile=0.75,
-    n_bins=50,
-    min_points_per_bin=100,
-)
-st.pyplot(fig)
 
-fig = plot_trend_line(
-    main_df,
-    x_param="WSPM",
-    y_param_list=pollutant_params,
-    x_label="Kecepatan angin",
-    quantile=0.50,
-    n_bins=35,
-    min_points_per_bin=100,
-)
-st.pyplot(fig)
+@st.fragment
+def trend_support_parameter():
+    st.subheader('Tren Parameter Meteorologi Berdasarkan Polutan')
 
-fig = plot_trend_line(
-    main_df,
-    x_param="RAIN",
-    y_param_list=pollutant_params,
-    x_label="Curah hujan",
-    quantile=0.95,
-    n_bins=200,
-    min_points_per_bin=200,
-)
-st.pyplot(fig)
+    support_param_df = pd.DataFrame(
+        np.array([
+            support_params,
+            ['Temperatur', 'Tekanan Udara', 'Titik Embun', 'Curah Hujan', 'Kecepatan Angin'],
+            [0.75, 0.75, 0.75, 0.95, 0.5],
+            [50, 30, 30, 200, 35],
+            [100, 100, 100, 200, 100],
+        ]).T,
+        columns=['param', 'label', 'quantile', 'n_bins', 'min_points_per_bin']
+    )
 
-fig = plot_trend_line(
-    main_df,
-    x_param="PRES",
-    y_param_list=pollutant_params,
-    x_label="Tekanan udara",
-    quantile=0.75,
-    n_bins=30,
-    min_points_per_bin=100,
-)
-st.pyplot(fig)
+    support_param_df = support_param_df.astype({
+        'param': 'str',
+        'label': 'str',
+        'quantile': 'float',
+        'n_bins': 'int32',
+        'min_points_per_bin': 'int32',
+    })
+
+    min_date = all_df["date"].min()
+    max_date = all_df["date"].max()
+
+    support_param_select_box = st.selectbox(
+        'Pilih parameter meteorologi: ', 
+        support_param_df['label']
+    )
+    
+    # Mengambil start_date & end_date dari date_input
+    start_date, end_date = st.date_input(
+        label='Rentang Waktu',min_value=min_date,
+        max_value=max_date,
+        value=[min_date, max_date],
+        key='trend_support_parameter'
+    )
+    main_df = all_df[
+        (all_df["date"] >= str(start_date)) & 
+        (all_df["date"] <= str(end_date))
+    ]
+    
+    support_param_idx = support_param_df.index[
+        support_param_df['label'] == support_param_select_box
+    ][0]
+    
+    fig = plot_trend_line(
+        main_df,
+        x_param=support_param_df.at[support_param_idx, 'param'],
+        y_param_list=pollutant_params,
+        x_label=support_param_df.at[support_param_idx, 'label'],
+        quantile=support_param_df.at[support_param_idx, 'quantile'],
+        n_bins=support_param_df.at[support_param_idx, 'n_bins'],
+        min_points_per_bin=support_param_df.at[support_param_idx, 'min_points_per_bin'],
+    )
+
+    st.pyplot(fig)
+
+trend_pollutant_per_season()
+trend_support_parameter()
 
 st.subheader('Persentase Perubahan Konsentrasi Polutan 2013 vs 2016')
 fig = plot_percentage_change(all_df, pollutant_params)
