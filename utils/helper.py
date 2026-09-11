@@ -285,15 +285,7 @@ def plot_percentage_change_per_year(
     param: str,
     baseline_year: int = 2013,
 ):
-    df_copy = df.copy()
-    df_copy['season_year'] = df_copy['date'].dt.year
-    df_copy.loc[
-        df_copy['season'].eq('Winter') &
-        df_copy['date'].dt.month.isin([1, 2]),
-        'season_year'
-    ] -= 1
-
-    data_df = df_copy.groupby([
+    data_df = df.groupby([
         'station',
         'season_year',
     ])[param].median().reset_index()
@@ -351,7 +343,7 @@ def plot_percentage_change_per_year(
         linewidths=0.5,
         vmin=-100, vmax=100, square=True,
         cbar_kws={
-            'label': 'Perubahan terhadap 2013 (%)'
+            'label': f'Perubahan terhadap {baseline_year} (%)'
         }
     )
 
@@ -420,43 +412,40 @@ def plot_percentage_change_per_year(
     plt.ylabel('Station')
     plt.tight_layout()
 
-    return data_df, fig
+    return fig
 
 
 def plot_annual_heatmap(
-    annual: pd.DataFrame,
+    df: pd.DataFrame,
     pollutant: str,
     figsize=(10, 6),
     is_heatmap_square=True,
-    min_year: int=None,
-    max_year: int=None,
 ):
+    data_df = df.groupby([
+        'station',
+        'season_year',
+    ])[pollutant].median().reset_index()
+
     # Pivot untuk heatmap
-    heatmap_data = annual.pivot(
+    heatmap_data = data_df.pivot(
         index='station',
         columns='season_year',
         values=pollutant
     )
 
     # Cari posisi min dan max
-    min_idx = annual[pollutant].idxmin()
-    max_idx = annual[pollutant].idxmax()
+    min_idx = data_df[pollutant].idxmin()
+    max_idx = data_df[pollutant].idxmax()
 
-    min_row = annual.loc[min_idx]
-    max_row = annual.loc[max_idx]
+    min_row = data_df.loc[min_idx]
+    max_row = data_df.loc[max_idx]
 
     min_station = min_row['station']
-    if min_year is None :
-        min_season_year = min_row['season_year'] 
-    else: 
-        min_season_year = min_year
+    min_season_year = min_row['season_year'] 
     min_value = min_row[pollutant]
 
     max_station = max_row['station']
-    if max_year is None:
-        max_season_year = max_row['season_year']
-    else: 
-        max_season_year = max_year
+    max_season_year = max_row['season_year']
     max_value = max_row[pollutant]
 
     # Buat heatmap

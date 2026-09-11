@@ -13,8 +13,10 @@ from utils.helper import (
 
 all_df = pd.read_csv('all_data.csv')
 all_df['date'] = pd.to_datetime(all_df['date'], errors='coerce')
+main_df = convert_df_year_to_season_year(all_df)
 pollutant_params = ['PM2.5', 'PM10', 'SO2', 'NO2', 'CO', 'O3']
 support_params = ['TEMP', 'PRES', 'DEWP', 'RAIN', 'WSPM']
+
 
 st.header('Analisis Data Air Quality')
 
@@ -101,10 +103,9 @@ def trend_support_parameter():
 
 @st.fragment
 def trend_pollutant_by_compare_year():
-    st.subheader('Perbandingan Perubahan Konsentrasi Polutan')
+    st.subheader('Perbandingan Perubahan Konsentrasi Polutan Antar Tahun')
     st.caption('Disclaimer: Winter bulan Januari dan Februari akan dianggap sebagai data tahun sebelumnya, e.g. Winter Januari 2017, season_year = 2016')
 
-    main_df = convert_df_year_to_season_year(all_df)
     col1, col2 = st.columns(2)
     year_opts = main_df['season_year'].unique()
     year_opts.sort()
@@ -131,6 +132,50 @@ def trend_pollutant_by_compare_year():
     fig = plot_percentage_change(main_df, pollutant_params, years)
     st.pyplot(fig)
 
+
+@st.fragment
+def trend_pollutant_percentage_every_year():
+    st.subheader('Perubahan Persentase Polutan Tiap Tahun')
+    year_opts = main_df['season_year'].unique()
+    col1, col2 = st.columns(2)
+
+    with col1:
+        selected_pollutant = st.selectbox(
+            'Pilih polutan: ',
+            pollutant_params,
+            key='trend_pollutant_percentage_every_year_pollutant'
+        )
+
+    with col2:
+        year = st.selectbox(
+            'Pilih tahun pembanding: ', 
+            year_opts,
+            key='trend_pollutant_percentage_every_year1',
+        )
+
+    fig = plot_percentage_change_per_year(
+        main_df, selected_pollutant, year)
+    
+    st.pyplot(fig)
+
+
+@st.fragment
+def trend_pollutant_concentration_every_year():
+    st.subheader('Perubahan Konsentrasi Polutan Tiap Tahun')
+
+    selected_pollutant = st.selectbox(
+        'Pilih polutan: ',
+        pollutant_params,
+        key='trend_pollutant_concentration_every_year_pollutant'
+    )
+
+    fig = plot_annual_heatmap(
+        main_df, selected_pollutant,
+        is_heatmap_square=selected_pollutant != 'CO')
+    
+    st.pyplot(fig)
+
+
 st.divider()
 # trend_pollutant_per_season()
 st.divider()
@@ -138,84 +183,7 @@ st.divider()
 st.divider()
 # trend_pollutant_by_compare_year()
 st.divider()
+trend_pollutant_percentage_every_year()
+st.divider()
+trend_pollutant_concentration_every_year()
 
-st.subheader('Perubahan Persentase dan Konsentrasi Tahunan Polutan')
-
-all_df2 = convert_df_year_to_season_year(all_df)
-min_date2 = all_df["date"].min()
-max_date2 = "2016-12-31 23:00:00"
-
-# Mengambil start_date & end_date dari date_input
-start_date2, end_date2 = st.date_input(
-    label='Rentang Waktu',min_value=min_date,
-    max_value=max_date,
-    value=[min_date, max_date],
-    key='date2'
-)
-
-st.subheader('Perubahan Persentase dan Konsentrasi Tahunan PM2.5')
-pollutant = 'PM2.5'
-annual_df, fig = plot_percentage_change_per_year(all_df, pollutant, start_date2.year)
-st.pyplot(fig)
-fig = plot_annual_heatmap(
-    annual_df, pollutant, 
-    min_year=start_date2.year, 
-    max_year=end_date2.year
-)
-st.pyplot(fig)
-
-st.subheader('Perubahan Perubahan Persentase dan Konsentrasi Tahunan PM10')
-pollutant = 'PM10'
-annual_df, fig = plot_percentage_change_per_year(all_df, pollutant, start_date2.year)
-st.pyplot(fig)
-fig = plot_annual_heatmap(
-    annual_df, pollutant, 
-    min_year=start_date2.year, 
-    max_year=end_date2.year
-)
-st.pyplot(fig)
-
-st.subheader('Perubahan Perubahan Persentase dan Konsentrasi Tahunan SO2')
-pollutant = 'SO2'
-annual_df, fig = plot_percentage_change_per_year(all_df, pollutant, start_date2.year)
-st.pyplot(fig)
-fig = plot_annual_heatmap(
-    annual_df, pollutant, 
-    min_year=start_date2.year, 
-    max_year=end_date2.year
-)
-st.pyplot(fig)
-
-st.subheader('Perubahan Perubahan Persentase dan Konsentrasi Tahunan NO2')
-pollutant = 'NO2'
-annual_df, fig = plot_percentage_change_per_year(all_df, pollutant, start_date2.year)
-st.pyplot(fig)
-fig = plot_annual_heatmap(
-    annual_df, pollutant, 
-    min_year=start_date2.year, 
-    max_year=end_date2.year
-)
-st.pyplot(fig)
-
-st.subheader('Perubahan Perubahan Persentase dan Konsentrasi Tahunan CO')
-pollutant = 'CO'
-annual_df, fig = plot_percentage_change_per_year(all_df, pollutant, start_date2.year)
-st.pyplot(fig)
-fig = plot_annual_heatmap(
-    annual_df, pollutant, 
-    is_heatmap_square=False, 
-    min_year=start_date2.year, 
-    max_year=end_date2.year
-)
-st.pyplot(fig)
-
-st.subheader('Perubahan Perubahan Persentase dan Konsentrasi Tahunan O3')
-pollutant = 'O3'
-annual_df, fig = plot_percentage_change_per_year(all_df, pollutant, start_date2.year)
-st.pyplot(fig)
-fig = plot_annual_heatmap(
-    annual_df, pollutant, 
-    min_year=start_date2.year, 
-    max_year=end_date2.year
-)
-st.pyplot(fig)
