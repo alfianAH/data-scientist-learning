@@ -104,7 +104,7 @@ def trend_support_parameter():
 @st.fragment
 def trend_pollutant_by_compare_year():
     st.subheader('Perbandingan Perubahan Konsentrasi Polutan Antar Tahun')
-    st.caption('Disclaimer: Winter bulan Januari dan Februari akan dianggap sebagai data tahun sebelumnya, e.g. Winter Januari 2017, season_year = 2016')
+    st.caption('Disclaimer: Winter bulan Januari dan Februari akan dianggap sebagai data tahun sebelumnya, e.g. Winter Januari 2017, akan dianggap Winter 2016')
 
     col1, col2 = st.columns(2)
     year_opts = main_df['season_year'].unique()
@@ -136,6 +136,7 @@ def trend_pollutant_by_compare_year():
 @st.fragment
 def trend_pollutant_percentage_every_year():
     st.subheader('Perubahan Persentase Polutan Tiap Tahun')
+    st.caption('Disclaimer: Winter bulan Januari dan Februari akan dianggap sebagai data tahun sebelumnya, e.g. Winter Januari 2017, akan dianggap Winter 2016')
     year_opts = main_df['season_year'].unique()
     col1, col2 = st.columns(2)
 
@@ -162,7 +163,7 @@ def trend_pollutant_percentage_every_year():
 @st.fragment
 def trend_pollutant_concentration_every_year():
     st.subheader('Perubahan Konsentrasi Polutan Tiap Tahun')
-
+    st.caption('Disclaimer: Winter bulan Januari dan Februari akan dianggap sebagai data tahun sebelumnya, e.g. Winter Januari 2017, akan dianggap Winter 2016')
     selected_pollutant = st.selectbox(
         'Pilih polutan: ',
         pollutant_params,
@@ -177,13 +178,13 @@ def trend_pollutant_concentration_every_year():
 
 
 st.divider()
-# trend_pollutant_per_season()
+trend_pollutant_per_season()
 st.divider()
-# trend_support_parameter()
+trend_support_parameter()
 st.divider()
-# trend_pollutant_by_compare_year()
+trend_pollutant_by_compare_year()
 st.divider()
 trend_pollutant_percentage_every_year()
 st.divider()
 trend_pollutant_concentration_every_year()
-
+st.divider()

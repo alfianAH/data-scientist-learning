@@ -315,9 +315,9 @@ def plot_percentage_change_per_year(
     change_df = change_df.sort_index(axis=1)
 
     # Cari MIN dan MAX
-
-    min_idx = data_df['change_%'].idxmin()
-    max_idx = data_df['change_%'].idxmax()
+    filter_df = data_df[data_df['season_year'] != baseline_year]
+    min_idx = filter_df['change_%'].idxmin()
+    max_idx = filter_df['change_%'].idxmax()
 
     min_row = data_df.loc[min_idx]
     max_row = data_df.loc[max_idx]
